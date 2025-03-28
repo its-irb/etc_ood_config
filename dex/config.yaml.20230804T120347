@@ -1,0 +1,71 @@
+---
+issuer: http://www.irb.ood.com/dex
+storage:
+  type: sqlite3
+  config:
+    file: "/etc/ood/dex/dex.db"
+web:
+  http: localhost:5556
+telemetry:
+  http: 0.0.0.0:5558
+staticClients:
+- id: www.irb.ood.com
+  redirectURIs:
+  - http://www.irb.ood.com/oidc
+  name: OnDemand
+  secret: 6156b70c-3e74-49be-90a3-22d78dc22d2b
+connectors:
+- type: ldap
+  id: ldap
+  name: Authentication node LDAP1
+  config:
+    host: irbldap1
+    insecureNoSSL: true
+    insecureSkipVerify: false
+    userSearch:
+      baseDN: o=irbbarcelona
+      filter: "(objectClass=posixAccount)"
+      username: uid
+      idAttr: uid
+      emailAttr: DN
+      preferredUsernameAttr: uid
+    groupSearch:
+      baseDN: o=irbbarcelona
+      filter: "(objectClass=posixGroup)"
+      userMatchers:
+      - userAttr: DN
+        groupAttr: member
+      nameAttr: cn
+- type: ldap
+  id: ldap
+  name: Authentication node LDAP2
+  config:
+    host: irbldap2
+    insecureNoSSL: true
+    insecureSkipVerify: false
+    userSearch:
+      baseDN: o=irbbarcelona
+      filter: "(objectClass=posixAccount)"
+      username: uid
+      idAttr: uid
+      emailAttr: DN
+      preferredUsernameAttr: uid
+    groupSearch:
+      baseDN: o=irbbarcelona
+      filter: "(objectClass=posixGroup)"
+      userMatchers:
+      - userAttr: DN
+        groupAttr: member
+      nameAttr: cn
+oauth2:
+  skipApprovalScreen: true
+enablePasswordDB: false
+frontend:
+  dir: "/usr/share/ondemand-dex/web"
+  theme: irb
+  issuer: IRB OnDemand
+  extra:
+    loginTitle: Log in with IRB username and pass
+    loginButtonText: Log in
+    usernamePlaceholder: Username
+    passwordPlaceholder: Password

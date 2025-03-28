@@ -1,0 +1,185 @@
+<p>This first section displays the current usage of the partitions in the IRB Cluster. To get metrics about an ended job scroll to <a href="#oldJobs">the bottom of the page</a>.</p>
+
+<h3 style="margin-top:20px;" id="partitions">Monitoring Partitions<small> Current use of the IRB Cluster </small></h3>
+
+<span>Select the partition:</span>
+<!--
+<script>
+  function updateGrafanaIframes() {
+    var container = document.getElementById("grafanaPartitionPlots");
+    container.innerHTML = '';
+    panels = JSON.parse(document.getElementById("partitionSelect").value);
+    for (panelId of panels) {
+      console.log(`panel ${panelId}`)
+      var iframe = document.createElement('iframe');
+      iframe.src = `https://grafana.irbbarcelona.pcb.ub.es/d-solo/vG9GBlCIz/resources-allocated-per-partition?orgId=2&from=now-7d&to=now&theme=light&refresh=30s&panelId=${panelId}`
+      iframe.width="80%"
+      iframe.height="400"
+      iframe.style="margin:48px"
+      iframe.setAttribute('frameborder', '0')
+      iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts')
+      iframe.setAttribute('credentialless','')
+      container.appendChild(iframe);
+    }
+  }
+</script>
+
+<select id="partitionSelect" class="form-control" style="width:80%" onChange="updateGrafanaIframes()">
+        <option value="[2,4]">irb_cpu_iclk</option>
+	<option value="[25,26]">irb_cpu_sphr</option>
+	<option value="[27,28]">irb_cpu_zen4</option>
+	<option value="[13,14,15]">irb_gpu_3090</option>
+	<option value="[5,6]">mmb_cpu_zen3</option>
+	<option value="[9,10]">mmb_cpu_sphr</option>
+	<option value="[19,20,18]">mmb_gpu_2080</option>
+	<option value="[7,8]">sbnb_cpu_zen3</option>
+	<option value="[29,30]">sbnb_cpu_sphr</option>
+	<option value="[16,17,21]">aatd_gpu_4090</option>
+	<option value="[11,12]">bbg_cpu_zen4</option>
+	<option value="[31,32]">spot_cpu</option>
+        <option value="[33,34,35]">spot_gpu</option>
+</select>
+
+<div id="grafanaPartitionPlots"></div>
+-->
+<script>
+  function updateGrafanaIframes() {
+    var container = document.getElementById("grafanaPartitionPlots");
+    container.innerHTML = '';
+    partition = document.getElementById("partitionSelect").value;
+    for (panelId of (partition.includes("gpu") ? [44,45,48] : [44,45])) {
+      console.log(`partition ${partition}`)
+      var iframe = document.createElement('iframe');
+	    iframe.src = `https://grafana.irbbarcelona.pcb.ub.es/d-solo/vG9GBlCIz/resources-allocated-per-partition?orgId=2&from=now-7d&to=now&theme=light&refresh=30s&panelId=${panelId}&var-partition=${partition}`
+      iframe.width="80%"
+      iframe.height="400"
+      iframe.style="margin:48px"
+      iframe.setAttribute('frameborder', '0')
+      iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts')
+      iframe.setAttribute('credentialless','')
+      container.appendChild(iframe);
+    }
+  }
+</script>
+
+<select id="partitionSelect" class="form-control" style="width:80%" onChange="updateGrafanaIframes()"></select>
+
+<div id="grafanaPartitionPlots"></div>
+
+<h3 style="margin-top:20px;" id="oldJobs">Job History<small> Resource Usage of Past Jobs</small></h3>
+
+<div>
+<label>Filter jobs from the 7 days before the following date:</label>
+<input type="date" id="jobDateRange" name="jobDateRange" onChange="populateJobSelect()"/>
+<p>Please understand that retrieving data from old jobs might take some seconds&mldr;</p>
+</div>
+
+<style>
+/* Parent container as a flexbox */
+.card-body {
+    display: flex;
+    flex-wrap: wrap; /* Allows the children to wrap into multiple rows */
+    justify-content: space-between;
+    width: 100%; /* Full width of parent */
+}
+
+/* Default style: 1 column */
+.card-body > iframe {
+    flex: 1 1 100%; /* Take full width */
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* Media query for wider screens: 2 columns */
+@media (min-width: 850px) {
+    .card-body > iframe {
+        flex: 1 1 48%; /* Take about half the width */
+    }
+}
+</style>
+
+<div>
+<label style="display:block">Select the job:</label>
+<select id="jobSelect" class="form-control" style="width:675px" onChange="updateGrafanaJobIframes(this.value)" disabled>
+  <option disabled>choose the job you want to view</option>
+</select>
+</div>
+<script>
+    async function updateGrafanaJobIframes(jobId) {
+        var container = document.getElementById("grafanaJobPlots");
+        container.innerHTML = '';
+        jobResponse = await fetch('/pun/sys/ood-flask-monitoring-backend/job?' + new URLSearchParams({jobId: jobId}).toString())
+        jobs = await jobResponse.json()
+	job = jobs[0]
+	for (node of job["nodes"]) {
+		var card = document.createElement('div');
+		card.className = "card ml-5 mt-3";
+		card.width="80%"
+		var cardTitle = document.createElement('div');
+		cardTitle.className = "card-header";
+		cardTitle.innerHTML = node;
+		var cardBody = document.createElement('div');
+		cardBody.className = "card-body";
+		card.appendChild(cardTitle);
+		card.appendChild(cardBody);
+		container.appendChild(card);
+                var iframe = document.createElement('iframe');
+                // iframe.width="100%"
+                iframe.height="400"
+                iframe.setAttribute('frameborder', '0')
+                iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts')
+		// iframe.setAttribute('credentialless','')
+		iframe.src = `https://grafana.irbbarcelona.pcb.ub.es/d-solo/4E3iICjSk/resources-usage-per-job?orgId=2&var-job_id=${jobId}&var-node=${node}&from=${job['time']['start']*1000}&to=${job['time']['end']*1000}&theme=light&refresh=30s&panelId=14`
+                cardBody.appendChild(iframe);
+		iframe = iframe.cloneNode(true)
+		iframe.src = `https://grafana.irbbarcelona.pcb.ub.es/d-solo/4E3iICjSk/resources-usage-per-job?orgId=2&var-prom_ds=Prometheus&var-job_id=${jobId}&var-node=${node}&from=${job['time']['start']*1000}&to=${job['time']['end']*1000}&theme=light&refresh=30s&panelId=17`
+                cardBody.appendChild(iframe);
+		if (node.startsWith("irbgcn")) {
+			iframe = iframe.cloneNode(true)
+			iframe.src = `https://grafana.irbbarcelona.pcb.ub.es/d-solo/4E3iICjSk/resources-usage-per-job?orgId=2&var-prom_ds=Prometheus&var-job_id=${jobId}&var-node=${node}&from=${job['time']['start']*1000}&to=${job['time']['end']*1000}&theme=light&refresh=30s&panelId=24`
+                	cardBody.appendChild(iframe);
+			iframe = iframe.cloneNode(true)
+                        iframe.src = `https://grafana.irbbarcelona.pcb.ub.es/d-solo/4E3iICjSk/resources-usage-per-job?orgId=2&var-prom_ds=Prometheus&var-job_id=${jobId}&var-node=${node}&from=${job['time']['start']*1000}&to=${job['time']['end']*1000}&theme=light&refresh=30s&panelId=25`
+                        cardBody.appendChild(iframe);
+		}
+
+    }
+  }
+
+    async function populatePartitionSelect() {
+	var partitionSelect = document.getElementById("partitionSelect");	
+    	partitionsListResponse = await fetch('/pun/sys/ood-flask-monitoring-backend/partitions')
+    	partitionsList = await partitionsListResponse.json()
+        console.log(partitionsList)
+	for (part in partitionsList) {
+		var option = document.createElement('option');
+		option.text = partitionsList[part];
+		option.value = partitionsList[part];
+		partitionSelect.append(option);
+	}
+	updateGrafanaIframes();
+    };
+
+    async function populateJobSelect() {
+        var jobSelect = document.getElementById("jobSelect");
+	jobSelect.disabled = false;
+	jobSelect.innerHTML = '';
+	dateEnd = new Date(document.getElementById("jobDateRange").value)
+	dateEnd.setDate(dateEnd.getDate() + 1)
+	    jobsListResponse = await fetch('/pun/sys/ood-flask-monitoring-backend/jobs?' + new URLSearchParams({end: dateEnd.toISOString().split('T')[0]}).toString())
+	jobsList = await jobsListResponse.json()
+	for (job of jobsList) {
+            var option = document.createElement('option');
+            time = new Date(job["time"]["submission"]*1000)
+	    option.text = `${job["job_id"]} - ${time.toISOString().slice(0,-5)} - ${job["name"]}`
+            option.value = job["job_id"]
+	    jobSelect.prepend(option)
+	}
+	jobSelect.onchange();
+    }
+
+window.addEventListener("DOMContentLoaded",(async function() {updateGrafanaIframes(); document.getElementById("jobDateRange").valueAsDate = new Date(); await populatePartitionSelect(); await populateJobSelect();}))
+</script>
+
+<div id="grafanaJobPlots">
+</div>

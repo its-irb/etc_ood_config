@@ -1,0 +1,34 @@
+pinned_apps:
+  - sys/*
+
+dashboard_layout:
+  rows:
+    - columns:
+      - width: 12
+        widgets:
+          - pinned_apps
+          - motd
+
+# Setteamos para que se puedan cancelar las sesiones int.
+cancel_session_enabled: true
+
+bc_dynamic_js: true
+
+# 'nav_bar' is the left side of the navigation bar.
+nav_bar:
+  - files
+  - jobs
+  - clusters
+  - interactive apps
+  - my interactive sessions
+
+# dashboard_header_img_logo: "/public/irblogo.png"
+# dashboard_logo_height: "150px"
+
+custom_pages:
+  monitoring:
+    rows:
+      - columns:
+          - width: 12
+            widgets:
+              - monitoring

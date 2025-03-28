@@ -1,0 +1,36 @@
+---
+v2:
+  metadata:
+    title: "IRB Cluster"
+  login:
+    host: "irblogin01"
+  job:
+    adapter: "slurm"
+#    submit_host: "irbslurm01"
+    bin: "/usr/bin"
+    conf: "/etc/slurm.conf"
+  batch_connect:
+    basic:
+      script_wrapper: |
+        module purge
+        %s
+    vnc:
+      script_wrapper: |
+        module purge
+        export PATH="/opt/TurboVNC/bin/:$PATH"
+        export WEBSOCKIFY_CMD="/usr/local/bin/websockify"
+        %s
+  grafana:
+    host: "https://grafana.irbbarcelona.pcb.ub.es"
+    orgId: 2
+    dashboard:
+      name: "resources-usage-per-job"
+      uid: "VKHGDysSk"
+      panels:
+        cpu: 4
+        memory: 6
+      labels:
+        cluster: "IRB Cluster"
+        host: "irblogin01.irbbarcelona.pcb.ub.es"
+        jobid: "job_id"
+      cluster_override: "IRB Cluster"
